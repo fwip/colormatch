@@ -1,22 +1,72 @@
-var colormatch = {};
-
-colormatch.colors = ['red', 'green', 'blue', 'orange'];
-
-colormatch.randompiece = function(){
-  return { color: colormatch.colors[Math.floor(Math.random()*colormatch.colors.length)] };
+function Piece(pos, color) {
+  this.id = Piece.nextid++;
+  this.color = color || Piece.colors[Math.floor(Math.random()*Piece.colors.length)];
+  this.pos = pos || new Position;
 }
+
+Piece.nextid = 0;
+Piece.colors = ['red', 'green', 'blue', 'orange'];
+
+function Position(x, y) {
+  this.x = x || 0;
+  this.y = y || 0;
+}
+
+var colormatch = {};
 
 colormatch.fillboard = function(){
   var count = 0;
-  for ( var i = 0; i < this.width; i++ ){
-    for ( var j = 0 ; j <  this.height; j++) {
-      var piece = colormatch.randompiece();
-      piece.x = i;
-      piece.y = j;
-      this.board[count++] = piece;
-      console.log('piece');
+  var p;
+  while (p = this.empty_positions.pop()){
+    this.board.push( new Piece(p) );
+  }
+}
+
+// For testing
+colormatch.deleteBottomRow = function(){ 
+
+  // Add secret pieces above the board
+  for (var i = 0; i < colormatch.width; i++){
+    colormatch.board.push( new Piece( new Position(i, -1) ));
+  }
+  // Redraw (let d3 know about them)
+  colormatch.redraw();
+
+  // Delete ones at bottom of row and slide all down
+  for (var i = colormatch.board.length - 1; i >= 0; i--){
+    var p = colormatch.board[i];
+    if (p.pos.y == colormatch.height - 1){
+      colormatch.board.splice(i, 1);
+    } else {
+      p.pos.y ++;
     }
   }
+
+  // Redraw board
+  colormatch.redraw();
+}
+
+colormatch.redraw = function(){
+  var selection = this.svg
+    .selectAll('circle')
+    .data(this.board, function(d){ return d.id });
+
+  selection.enter()
+    .append('circle')
+    .attr('cx', function(d,i){return colormatch.xScale(d.pos.x)})
+    .attr('cy', function(d,i){return colormatch.yScale(d.pos.y)})
+    .attr('fill', function(d,i){return d.color})
+    .attr('r', this.piece_size);
+
+  selection.transition()
+    .duration(500)
+    .attr('cx', function(d,i){return colormatch.xScale(d.pos.x)})
+    .attr('cy', function(d,i){return colormatch.yScale(d.pos.y)})
+    .attr('fill', function(d,i){return d.color})
+    .attr('r', this.piece_size);
+
+  selection.exit()
+    .remove();
 }
 
 colormatch.init = function( params ){
@@ -31,7 +81,14 @@ colormatch.init = function( params ){
 
   this.piece_size = params.piecesize || 30;
 
+  this.empty_positions = [];
   // Setup board contents
+  
+  for (var x = 0; x < this.width; x++){
+    for (var y = 0; y < this.height; y++){
+      this.empty_positions.push( new Position(x, y) );
+    }
+  }
 
   // Create SVG gameboard
   this.svg = d3.select('#game')
@@ -51,15 +108,7 @@ colormatch.init = function( params ){
   colormatch.fillboard();
 
   // Bind d3 data
-  this.svg
-    .selectAll('circle')
-    .data(this.board)
-    .enter()
-    .append('circle')
-    .attr('cx', function(d,i){return colormatch.xScale(d.x)})
-    .attr('cy', function(d,i){return colormatch.yScale(d.y)})
-    .attr('fill', function(d,i){return d.color})
-    .attr('r', this.piece_size);
+  colormatch.redraw();
   
 }
 
