@@ -3,21 +3,25 @@
 <head>
 <script src="lib/d3/d3.v3.js" ></script>
 <script src="js/colormatch.js" defer="defer" ></script>
+
+<link rel="stylesheet" type="text/css" href="css/colormatch.css" media="screen"/>
 </head>
 
 <body>
 
+  <input type="button" onclick="colormatch.deleteBottomRow()" value="Test">
 <div id="title">
   Color Match (AWW YEAH) 
 </div>
 
 <div id="game">
-  <input type="button" onclick="colormatch.deleteBottomRow()" value="Test">
 </div>
 
-<aside>
+<aside id="info">
+  <div id="score">
+  </div>
   <div id="instructions">
-    Nothing yet. :)
+    Instructions: Watch the blinkenlights.
   </div>
 </aside>
 
