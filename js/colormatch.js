@@ -5,9 +5,9 @@ function Piece(pos, color) {
 }
 
 Piece.nextid = 0;
-Piece.colors = ['red', 'green', 'blue', 'orange', 'yellow', 'purple',
+Piece.colors = ['red', 'green', 'blue', 'orange', 'purple', 'yellow',
   'black', 'grey'];
-Piece.num_colors = 6;
+Piece.num_colors = 5;
 
 function Position(x, y) {
   this.x = x || 0;
@@ -16,7 +16,7 @@ function Position(x, y) {
 
 var colormatch = {};
 
-colormatch.delay = 300;
+colormatch.delay = 200;
 colormatch.score = 0;
 colormatch.score_per_piece = 20;
 
@@ -115,27 +115,41 @@ colormatch.removePiecesByIds = function(ids){
   }
 }
 
-// For testing
-colormatch.deleteBottomRow = function(){ 
-  // Add secret pieces above the board
-  // Delete ones at bottom of row and slide all down
-  for (var i = colormatch.board.length - 1; i >= 0; i--){
-    var p = colormatch.board[i];
-    if (p.pos.y == colormatch.height - 1){
-      colormatch.board.splice(i, 1);
-    } else {
-      //p.pos.y ++;
-    }
-  }
-
-  // Redraw board
-  colormatch.redraw();
-  colormatch.qup8();
-}
-
 // Helper function to update colormatch "soon"
 colormatch.qup8 = function(){
   window.setTimeout(colormatch.updateState, colormatch.delay);
+}
+
+// Select a piece for swapping
+colormatch.select = function(p){
+  var s = colormatch.board.filter(function(d){return d.selected})[0];
+  
+  p.selected = true;
+  if (s){
+    // If adjacent and would make a match, swap
+    if (Math.abs(s.pos.x - p.pos.x) + Math.abs(s.pos.y - p.pos.y) == 1){
+      colormatch.swap(s, p);
+      s.selected = false;
+      p.selected = false;
+
+      if (colormatch.findMatches().length){
+        colormatch.qup8();
+        colormatch.moves ++;
+      } else {
+        colormatch.swap(s, p);
+      }
+    } else {
+      s.selected = false;
+    }
+  }
+  colormatch.redraw();
+
+}
+
+colormatch.swap = function(p1, p2){
+  var t = p1.pos;
+  p1.pos = p2.pos;
+  p2.pos = t;
 }
 
 colormatch.redraw = function(){
@@ -147,13 +161,27 @@ colormatch.redraw = function(){
     .append('circle')
     .attr('r', this.piece_size)
     .attr('cy', this.yScale(-1))
-    .attr('fill', function(d,i){return d.color});
+    .attr('fill', function(d,i){return d.color})
+    .attr('iid', function(d){return d.id})
+    .on('click', function(d){ colormatch.select(d) } )
+    .on('mouseover', function(d){
+      d3.select(this) //.transition().duration(colormatch.short_delay)
+      .attr('r', colormatch.selected_size); } )
+    .on('mouseout', function(d){
+      d3.select(this) //.transition().duration(colormatch.short_delay)
+      .attr('r', function(d) {
+        return d.selected ? colormatch.selected_size : colormatch.piece_size });
+      } )
+    ;
+
 
   selection.transition()
     .duration(colormatch.delay)
     .ease('linear')
     .attr('cx', function(d,i){return colormatch.xScale(d.pos.x)})
     .attr('cy', function(d,i){return colormatch.yScale(d.pos.y)})
+    .attr('r', function(d){
+      return d.selected ? colormatch.selected_size : colormatch.piece_size })
     .attr('opacity', 1);
 
   selection.exit()
@@ -163,8 +191,13 @@ colormatch.redraw = function(){
     .duration(colormatch.delay)
     .remove();
 
+  // Set score display
   d3.select('#score')
-    .text('Score: ' + this.score);
+    .html('Score: ' + this.score
+          + '<br>Moves: ' + this.moves + '<br>'
+          + ((this.moves > 0)
+            ? ('Score/Moves: ' + Math.floor(this.score / this.moves))
+            : '') );
 }
 
 colormatch.init = function( params ){
@@ -179,6 +212,9 @@ colormatch.init = function( params ){
   this.pxheight = params.pxheight || 400;
 
   this.piece_size = params.piecesize || 20;
+  this.selected_size = params.selectedsize || 28;
+
+  this.moves = 0;
 
   // Setup board contents
 

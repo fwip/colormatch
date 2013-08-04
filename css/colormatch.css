@@ -1,10 +1,19 @@
 #info {
   float: left;
-  width: 100px;
+  width: 350px;
   padding-left: 20px;
 }
 
 #game {
   float: left;
   width: 400px;
+}
+
+#instructions {
+  color: gray;
+  font-style: italic;
+}
+
+#title {
+  font-size: 300%;
 }
