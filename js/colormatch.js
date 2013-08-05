@@ -2,7 +2,7 @@ function Board(params){
 
   // Set up default parameters
   params = params || {};
-  this.board = [];
+  this.pieces = [];
   this.score = 0;
 	this.delay = 200;
 
@@ -86,8 +86,8 @@ Board.prototype.get_2d = function(){
   for (var i = 0; i <  this.width; i++){
     twodee[i] = [];
   }
-  for (var i in this.board){
-    var p = this.board[i];
+  for (var i in this.pieces){
+    var p = this.pieces[i];
     if (p.pos.x >= 0 && p.pos.x < this.width && p.pos.y >= 0 && p.pos.y < this.height){
       twodee[p.pos.x][p.pos.y] = p;
     }
@@ -199,7 +199,7 @@ Board.prototype.updateState = function(){
       }
     }
     if (drop){
-      this.board.push(this.newRandomPiece(new Position(x, 0)));
+      this.pieces.push(this.newRandomPiece(new Position(x, 0)));
       dropped = true;
     }
   }
@@ -229,10 +229,10 @@ Board.prototype.updateState = function(){
 
 
 Board.prototype.removePiecesByIds = function(ids){
-  for (var i = this.board.length - 1; i >= 0; i--){
-    var p = this.board[i];
+  for (var i = this.pieces.length - 1; i >= 0; i--){
+    var p = this.pieces[i];
     if (ids.indexOf(p.id) != -1){
-      this.board.splice(i, 1);
+      this.pieces.splice(i, 1);
     }
   }
 }
@@ -246,7 +246,7 @@ Board.prototype.qup8 = function(){
 // Select a piece for swapping
 Board.prototype.select = function(p){
   if (this.interactable){
-    var s = this.board.filter(function(d){return d.selected})[0];
+    var s = this.pieces.filter(function(d){return d.selected})[0];
 
     p.selected = true;
     if (s){
@@ -283,7 +283,7 @@ Board.prototype.redraw = function(){
 
   var selection = this.svg
     .selectAll('circle')
-    .data(this.board, function(d){ return d.id });
+    .data(this.pieces, function(d){ return d.id });
 
   selection.enter()
     .append('circle')
