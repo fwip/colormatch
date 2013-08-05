@@ -1,13 +1,13 @@
 function Piece(pos, color) {
   this.id = Piece.nextid++;
-  this.color = color || Piece.colors[Math.floor(Math.random()*Piece.num_colors)];
+  this.color = color || Piece.colors[Math.floor(Math.random()*colormatch.current_level.colors)];
   this.pos = pos || new Position;
 }
 
 Piece.nextid = 0;
-Piece.colors = ['red', 'green', 'blue', 'orange', 'purple', 'yellow',
-  'black', 'grey'];
-Piece.num_colors = 5;
+Piece.colors = ['red', 'green', 'blue', 'orange', 'purple', 'gold',
+  'brown', 'grey', 'pink', 'lightgreen', 'teal', 'magenta', 'maroon', 'olive', 'lightblue', 'lightorange', 'black'];
+Piece.num_colors = 4;
 
 function Position(x, y) {
   this.x = x || 0;
@@ -18,7 +18,23 @@ var colormatch = {};
 
 colormatch.delay = 200;
 colormatch.score = 0;
-colormatch.score_per_piece = 20;
+colormatch.levels = [
+  {id:  0, score:        0, colors:  4, mult:     20},
+  {id:  1, score:     1000, colors:  5, mult:     40},
+  {id:  2, score:     2000, colors:  6, mult:     80},
+  {id:  3, score:     5000, colors:  7, mult:    120},
+  {id:  4, score:    10000, colors:  8, mult:    200},
+  {id:  5, score:    20000, colors:  9, mult:    320},
+  {id:  6, score:    50000, colors: 10, mult:    400},
+  {id:  7, score:   100000, colors: 11, mult:   1200},
+  {id:  8, score:   200000, colors: 12, mult:   2400},
+  {id:  9, score:   500000, colors: 13, mult:   4000},
+  {id: 10, score:  1000000, colors: 14, mult:   8000},
+  {id: 11, score:  2000000, colors: 15, mult:  40000},
+  {id: 12, score:  5000000, colors: 16, mult:  80000},
+  {id: 13, score: 10000000, colors: 17, mult: 999999}
+];
+colormatch.current_level = colormatch.levels[0];
 
 // Get the pieces ordered as rows & columns
 colormatch.get_2d = function(){
@@ -35,9 +51,46 @@ colormatch.get_2d = function(){
   return twodee;
 }
 
+colormatch.possibleMoves = function(){
+  var moves = [];
 
-colormatch.findMatches = function(){
+  var testswap = function(twodee, x1, y1, x2, y2){
+    
+    // If there's a swappable target
+    var possible = false;
+    
+    if (twodee[x1] && twodee[x1][y1] && twodee[x2] && twodee[x2][y2]){
+      var test = twodee[x1][y1];
+      twodee[x1][y1] = twodee[x2][y2];
+      twodee[x2][y2] = test;
+      var possible = (colormatch.findMatches(twodee).length > 0);
+      twodee[x2][y2] = twodee[x1][y1];
+      twodee[x1][y1] = test;
+    }
+    
+    return possible;
+  }
+
   var twodee = colormatch.get_2d();
+  for (var x = 0; x < this.width ; x++){
+    for (var y = 0; y < this.height ; y++){
+      // Check down
+      var downOkay = testswap(twodee, x, y, x, y+1);   
+      var rightOkay = testswap(twodee, x, y, x+1, y);   
+      if (downOkay){
+        moves.push([twodee[x][y], twodee[x][y+1]]);
+      }
+      if (rightOkay){
+        moves.push([twodee[x][y], twodee[x+1][y]]);
+      }
+    }
+  }
+
+  return moves;
+}
+
+colormatch.findMatches = function(twodee){
+  twodee = twodee || colormatch.get_2d();
   var matches = [];
   for (var x = 0; x < this.width; x++){
     for (var y = 0; y < this.height; y++){
@@ -68,9 +121,21 @@ colormatch.findMatches = function(){
   return matches;
 }
 
+colormatch.checkColorCount = function(){
+  
+  var new_colors = colormatch.levels.filter(
+    function(t) {return t.score <= colormatch.score}).length;
+
+  console.log(new_colors);
+  if (colormatch.current_level.id < new_colors){
+    colormatch.current_level = colormatch.levels[new_colors-1];
+  }
+}
+
 colormatch.updateState = function(){
   var dropped = false;
   var matched = false;
+
   var twodee = colormatch.get_2d();
   // Drop pieces that need to be dropped
   for (var x = 0; x < colormatch.width; x++){
@@ -95,13 +160,21 @@ colormatch.updateState = function(){
     if (matches.length > 0){
       matched = true;
       colormatch.removePiecesByIds(matches);
-      colormatch.score += matches.length * colormatch.score_per_piece;
+      colormatch.score += matches.length * colormatch.current_level.mult;
+      colormatch.checkColorCount();
     }
   } 
   // If anything changed, redraw again
   if (matched || dropped){
     colormatch.redraw();
     colormatch.qup8();
+    colormatch.interactable = false;
+
+  } else {
+    if (! colormatch.possibleMoves().length){
+      alert("No more possible moves. :/");
+    }
+    colormatch.interactable = true;
   }
 }
 
@@ -122,27 +195,29 @@ colormatch.qup8 = function(){
 
 // Select a piece for swapping
 colormatch.select = function(p){
-  var s = colormatch.board.filter(function(d){return d.selected})[0];
-  
-  p.selected = true;
-  if (s){
-    // If adjacent and would make a match, swap
-    if (Math.abs(s.pos.x - p.pos.x) + Math.abs(s.pos.y - p.pos.y) == 1){
-      colormatch.swap(s, p);
-      s.selected = false;
-      p.selected = false;
+  if (colormatch.interactable){
+    var s = colormatch.board.filter(function(d){return d.selected})[0];
 
-      if (colormatch.findMatches().length){
-        colormatch.qup8();
-        colormatch.moves ++;
-      } else {
+    p.selected = true;
+    if (s){
+      // If adjacent and would make a match, swap
+      if (Math.abs(s.pos.x - p.pos.x) + Math.abs(s.pos.y - p.pos.y) == 1){
         colormatch.swap(s, p);
+        s.selected = false;
+        p.selected = false;
+
+        if (colormatch.findMatches().length){
+          colormatch.qup8();
+          colormatch.moves ++;
+        } else {
+          colormatch.swap(s, p);
+        }
+      } else {
+        s.selected = false;
       }
-    } else {
-      s.selected = false;
     }
+    colormatch.redraw();
   }
-  colormatch.redraw();
 
 }
 
@@ -165,10 +240,10 @@ colormatch.redraw = function(){
     .attr('iid', function(d){return d.id})
     .on('click', function(d){ colormatch.select(d) } )
     .on('mouseover', function(d){
-      d3.select(this) //.transition().duration(colormatch.short_delay)
+      d3.select(this)
       .attr('r', colormatch.selected_size); } )
     .on('mouseout', function(d){
-      d3.select(this) //.transition().duration(colormatch.short_delay)
+      d3.select(this)
       .attr('r', function(d) {
         return d.selected ? colormatch.selected_size : colormatch.piece_size });
       } )
@@ -188,13 +263,15 @@ colormatch.redraw = function(){
     .transition()
     .ease('linear')
     .attr('opacity', 0)
+    .attr('r', colormatch.fade_size)
     .duration(colormatch.delay)
     .remove();
 
   // Set score display
   d3.select('#score')
-    .html('Score: ' + this.score
-          + '<br>Moves: ' + this.moves + '<br>'
+    .html('Score: ' + this.score + '<br>'
+          + 'Moves: ' + this.moves + '<br>'
+          + 'Level: ' + this.current_level.id + '<br>'
           + ((this.moves > 0)
             ? ('Score/Moves: ' + Math.floor(this.score / this.moves))
             : '') );
@@ -211,8 +288,9 @@ colormatch.init = function( params ){
   this.pxwidth = params.pxwidth || 400;
   this.pxheight = params.pxheight || 400;
 
-  this.piece_size = params.piecesize || 20;
-  this.selected_size = params.selectedsize || 28;
+  this.selected_size = params.selectedsize || Math.floor(this.pxwidth / (this.width) / 2);
+  this.piece_size = params.piecesize || Math.floor(this.selected_size * 0.8);
+  this.fade_size = this.piece_size * 1.4;
 
   this.moves = 0;
 
@@ -220,9 +298,9 @@ colormatch.init = function( params ){
 
   // Create SVG gameboard
   this.svg = d3.select('#game')
-    .append('svg:svg')
-    .attr('width', params.pxwidth)
-    .attr('height', params.pxheight);
+    .append('svg')
+    .attr('width', "100%")
+    .attr('height', "100%");
 
   // Create scale
   this.xScale = d3.scale.linear()
