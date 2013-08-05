@@ -167,8 +167,9 @@ Board.prototype.findMatches = function(twodee){
 
 Board.prototype.checkColorCount = function(){
   
+	var thisBoard = this;
   var new_colors = Board.levels.filter(
-    function(t) {return t.score <= this.score}).length;
+    function(t) {return t.score <= thisBoard.score}).length;
 
   if (this.level.id < new_colors){
     this.level = Board.levels[new_colors-1];
