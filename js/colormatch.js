@@ -27,6 +27,8 @@ function Board(params){
 
 	this.display = {};
 
+  this.updateId = 1;
+
   // Add scoreboard
 	this.display.scoreboard = d3.select(this.attachPoint)
 		.append('div')
@@ -235,7 +237,6 @@ Board.prototype.updateState = function(){
   // If anything changed, redraw again
   if (matched || dropped){
     this.redraw();
-    this.qup8();
     this.interactable = false;
 
   } else {
@@ -273,10 +274,11 @@ Board.prototype.removePiecesByIds = function(ids){
   }
 }
 
-// Helper function to update Board "soon"
-Board.prototype.qup8 = function(){
-  var thisBoard = this;
-  window.setTimeout( function(){ thisBoard.updateState()}, thisBoard.delay);
+Board.prototype.issueUpdate = function(updateId){
+  if (this.updateId == updateId){
+    this.updateId++;
+    this.updateState();
+  }
 }
 
 // Select a piece for swapping
@@ -293,7 +295,6 @@ Board.prototype.select = function(p){
         p.selected = false;
 
         if (this.findMatches().length){
-          this.qup8();
           this.moves ++;
         } else {
           this.swap(s, p);
@@ -316,6 +317,7 @@ Board.prototype.swap = function(p1, p2){
 Board.prototype.redraw = function(){
 
   var thisBoard = this;
+  var updateId = this.updateId;
 
   var selection = this.display.svg
   .selectAll('circle')
@@ -327,7 +329,7 @@ Board.prototype.redraw = function(){
   .attr('cy', this.yScale(-1))
   .attr('fill', function(d,i){return d.color})
   .attr('iid', function(d){return d.id})
-	.attr('stroke', 'black')
+  .attr('stroke', 'black')
   .on('click', function(d){ thisBoard.select(d) } )
   .on('mouseover', function(d){
     d3.select(this)
@@ -336,45 +338,46 @@ Board.prototype.redraw = function(){
       d3.select(this)
       .attr('r', function(d) {
         return d.selected ? thisBoard.selected_size : thisBoard.piece_size });
-    } )
-    ;
+    } ) ;
 
 
-    selection
-		.attr('stroke-width', function (d){return d.selected ? 1 : 0 })
-		.transition()
+  selection
+    .attr('stroke-width', function (d){return d.selected ? 1 : 0 })
+    .transition()
     .duration(this.delay)
     .ease('linear')
     .attr('cx', function(d,i){return thisBoard.xScale(d.pos.x)})
     .attr('cy', function(d,i){return thisBoard.yScale(d.pos.y)})
     .attr('r', function(d){
       return d.selected ? thisBoard.selected_size : thisBoard.piece_size })
-      .attr('opacity', 1);
+    .attr('opacity', 1)
+    .each('end', function(d){ thisBoard.issueUpdate(updateId)});
 
-      selection.exit()
-      .transition()
-      .ease('linear')
-      .attr('opacity', 0)
-      .attr('r', this.fade_size)
-      .duration(this.delay)
-      .remove();
+  selection.exit()
+    .transition()
+    .ease('linear')
+    .attr('opacity', 0)
+    .attr('r', this.fade_size)
+    .duration(this.delay)
+    .each('end', function(d){ thisBoard.issueUpdate(updateId)})
+    .remove();
 
-      // Set score display
-      this.display.scoreboard
-      .select('.score')
-      .text(this.score);
+  // Set score display
+  this.display.scoreboard
+    .select('.score')
+    .text(this.score);
 
-      this.display.scoreboard
-      .select('.level')
-      .text(this.level.id);
+  this.display.scoreboard
+  .select('.level')
+    .text(this.level.id);
 
-      this.display.scoreboard
-      .select('.moves')
-      .text(this.moves);
+  this.display.scoreboard
+  .select('.moves')
+    .text(this.moves);
 
-      this.display.scoreboard
-      .select('.scorepermoves')
-      .text( this.moves ? Math.floor(this.score / this.moves) : '...');
+  this.display.scoreboard
+  .select('.scorepermoves')
+    .text( this.moves ? Math.floor(this.score / this.moves) : '...');
 }
 
 
