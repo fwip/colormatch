@@ -327,6 +327,7 @@ Board.prototype.redraw = function(){
   .attr('cy', this.yScale(-1))
   .attr('fill', function(d,i){return d.color})
   .attr('iid', function(d){return d.id})
+	.attr('stroke', 'black')
   .on('click', function(d){ thisBoard.select(d) } )
   .on('mouseover', function(d){
     d3.select(this)
@@ -339,7 +340,9 @@ Board.prototype.redraw = function(){
     ;
 
 
-    selection.transition()
+    selection
+		.attr('stroke-width', function (d){return d.selected ? 1 : 0 })
+		.transition()
     .duration(this.delay)
     .ease('linear')
     .attr('cx', function(d,i){return thisBoard.xScale(d.pos.x)})
