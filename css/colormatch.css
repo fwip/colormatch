@@ -1,29 +1,37 @@
-.info {
-  /*float: right;*/
-  /*text-align: right;*/
-}
-
 .disp {
-  /*width: 60px;*/
-  padding-left: 40px;
-  float: left;
+  min-width: 60px;
+  float: right;
   text-align: right;
 }
 
 .game {
-  float: left;
-  width: 400px;
-  height: 400px;
+  width: 600px;
+  float: auto;
+  margin: 0, 80;
+  padding: 0px;
+  height: 700px;
 }
 
 #instructions {
   color: gray;
   font-style: italic;
-  padding-left: 30px;
   margin-left: 30px;
-  bg-color: yellow;
+  padding-left: 30px;
+  float: clear;
 }
 
 #title {
   font-size: 300%;
+}
+
+svg {
+  padding: 0px;
+  margin: 0px;
+}
+
+.notify {
+  font-size: 200%;
+  text-align: center;
+  vertical-align: middle;
+  float: center;
 }

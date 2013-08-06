@@ -6,14 +6,17 @@ function Board(params){
   this.score = 0;
 	this.delay = 200;
 
-  this.attachpoint = params.attachpoint || '#game';
+  this.attachPoint = params.attachPoint || '#game';
+
 
   this.width = params.width || 8;
   this.height = params.height || 8;
-  this.pxwidth = params.pxwidth || 400;
-  this.pxheight = params.pxheight || 400;
 
-  this.selected_size = params.selectedsize || Math.floor(this.pxwidth / (this.width) / 2);
+	this.pxwidth = params.pxwidth
+    || d3.select(this.attachPoint).node().clientWidth;
+	this.pxheight = Math.ceil(this.pxwidth / this.width * this.height);
+
+  this.selected_size = params.selectedsize || Math.floor(this.pxwidth / (this.width ) / 2);
   this.piece_size = params.piecesize || Math.floor(this.selected_size * 0.8);
   this.fade_size = this.piece_size * 1.4;
 
@@ -24,35 +27,35 @@ function Board(params){
 
 	this.display = {};
 
-	this.display.scoreboard = d3.select('#game')
+  // Add scoreboard
+	this.display.scoreboard = d3.select(this.attachPoint)
 		.append('div')
 		.attr('id', 'scoreboard')
 		.attr('class', 'info')
 		.html('<div class="disp">Score<br><span class="score"></span></div>'
 				 +'<div class="disp">Level<br><span class="level"></span></div>'
 				 +'<div class="disp">Moves<br><span class="moves"></span></div>'
-				 +'<div class="disp">Score/Moves<br><span class="scorepermoves"><span></div>');
+				 +'<div class="disp">Score/Moves<br><span class="scorepermoves"></span></div>'
+         +'<div class="disp notify"></div>'
+         );
+
 
 
   // Create SVG gameboard
-  this.display.svg = d3.select('#game')
+  this.display.svg = d3.select(this.attachPoint)
     .append('svg')
     .attr('width', "100%")
     .attr('height', "100%");
 
+
   // Create scale
   this.xScale = d3.scale.linear()
-    .range([this.piece_size, this.pxwidth - this.piece_size])
+    .range([this.selected_size, this.pxwidth - this.selected_size])
     .domain([0, this.width - 1]);
   this.yScale = d3.scale.linear()
-    .range([this.piece_size, this.pxheight - this.piece_size])
+    .range([this.selected_size, this.pxheight - this.selected_size])
     .domain([0, this.height - 1]);
 
-  // Add score
-  //d3.select('#game')
-    //.append('div')
-    //.attr('class', 'score')
-    
   // Bind d3 data
   
   this.updateState();
@@ -78,18 +81,18 @@ function Position(x, y) {
 Board.levels = [
   {id:  0, score:        0, colors:  4, mult:     20},
   {id:  1, score:     1000, colors:  5, mult:     40},
-  {id:  2, score:     2000, colors:  6, mult:     80},
-  {id:  3, score:     5000, colors:  7, mult:    120},
-  {id:  4, score:    10000, colors:  8, mult:    200},
-  {id:  5, score:    20000, colors:  9, mult:    320},
-  {id:  6, score:    50000, colors: 10, mult:    400},
-  {id:  7, score:   100000, colors: 11, mult:   1200},
-  {id:  8, score:   200000, colors: 12, mult:   2400},
-  {id:  9, score:   500000, colors: 13, mult:   4000},
-  {id: 10, score:  1000000, colors: 14, mult:   8000},
-  {id: 11, score:  2000000, colors: 15, mult:  40000},
-  {id: 12, score:  5000000, colors: 16, mult:  80000},
-  {id: 13, score: 10000000, colors: 17, mult: 999999}
+  {id:  2, score:     2000, colors:  5, mult:     80},
+  {id:  3, score:     5000, colors:  6, mult:    120},
+  {id:  4, score:    10000, colors:  6, mult:    200},
+  {id:  5, score:    20000, colors:  7, mult:    320},
+  {id:  6, score:    50000, colors:  8, mult:    400},
+  {id:  7, score:   100000, colors:  9, mult:   1200},
+  {id:  8, score:   200000, colors: 10, mult:   2400},
+  {id:  9, score:   500000, colors: 11, mult:   4000},
+  {id: 10, score:  1000000, colors: 12, mult:   8000},
+  {id: 11, score:  2000000, colors: 13, mult:  40000},
+  {id: 12, score:  5000000, colors: 14, mult:  80000},
+  {id: 13, score: 10000000, colors: 15, mult: 999999}
 ];
 
 // Get the pieces ordered as rows & columns
@@ -222,7 +225,10 @@ Board.prototype.updateState = function(){
     if (matches.length > 0){
       matched = true;
       this.removePiecesByIds(matches);
-      this.score += matches.length * this.level.mult;
+      var tempScore = matches.length * this.level.mult;
+      this.score += tempScore;
+      this.notify(tempScore);
+
       this.checkColorCount();
     }
   } 
@@ -234,11 +240,28 @@ Board.prototype.updateState = function(){
 
   } else {
     if (! this.possibleMoves().length){
-      alert("No more possible moves. :/");
+      this.notify("GAME OVER :[", true);
     }
     this.interactable = true;
   }
 }
+
+Board.prototype.notify = function(message, stickAround){
+
+  var n = this.display.scoreboard.select('.notify')
+    .style('color', 'black')
+    .text(message);
+
+    if (!stickAround){
+      n.transition()
+        .duration(this.delay * 1)
+        .style('color', 'gray')
+        .transition() // We use two transitions because... it makes it work
+        .duration(this.delay)
+        .style('color', 'white');
+    }
+
+};
 
 
 Board.prototype.removePiecesByIds = function(ids){
@@ -252,7 +275,7 @@ Board.prototype.removePiecesByIds = function(ids){
 
 // Helper function to update Board "soon"
 Board.prototype.qup8 = function(){
-	var thisBoard = this;
+  var thisBoard = this;
   window.setTimeout( function(){ thisBoard.updateState()}, thisBoard.delay);
 }
 
@@ -292,64 +315,64 @@ Board.prototype.swap = function(p1, p2){
 
 Board.prototype.redraw = function(){
 
-	var thisBoard = this;
+  var thisBoard = this;
 
   var selection = this.display.svg
-    .selectAll('circle')
-    .data(this.pieces, function(d){ return d.id });
+  .selectAll('circle')
+  .data(this.pieces, function(d){ return d.id });
 
   selection.enter()
-    .append('circle')
-    .attr('r', this.piece_size)
-    .attr('cy', this.yScale(-1))
-    .attr('fill', function(d,i){return d.color})
-    .attr('iid', function(d){return d.id})
-    .on('click', function(d){ thisBoard.select(d) } )
-    .on('mouseover', function(d){
-      d3.select(this)
-      .attr('r', thisBoard.selected_size); } )
+  .append('circle')
+  .attr('r', this.piece_size)
+  .attr('cy', this.yScale(-1))
+  .attr('fill', function(d,i){return d.color})
+  .attr('iid', function(d){return d.id})
+  .on('click', function(d){ thisBoard.select(d) } )
+  .on('mouseover', function(d){
+    d3.select(this)
+    .attr('r', thisBoard.selected_size); } )
     .on('mouseout', function(d){
       d3.select(this)
       .attr('r', function(d) {
         return d.selected ? thisBoard.selected_size : thisBoard.piece_size });
-      } )
+    } )
     ;
 
 
-  selection.transition()
+    selection.transition()
     .duration(this.delay)
     .ease('linear')
     .attr('cx', function(d,i){return thisBoard.xScale(d.pos.x)})
     .attr('cy', function(d,i){return thisBoard.yScale(d.pos.y)})
     .attr('r', function(d){
       return d.selected ? thisBoard.selected_size : thisBoard.piece_size })
-    .attr('opacity', 1);
+      .attr('opacity', 1);
 
-  selection.exit()
-    .transition()
-    .ease('linear')
-    .attr('opacity', 0)
-    .attr('r', this.fade_size)
-    .duration(this.delay)
-    .remove();
+      selection.exit()
+      .transition()
+      .ease('linear')
+      .attr('opacity', 0)
+      .attr('r', this.fade_size)
+      .duration(this.delay)
+      .remove();
 
-  // Set score display
-  this.display.scoreboard
-		.select('.score')
-		.text(this.score);
+      // Set score display
+      this.display.scoreboard
+      .select('.score')
+      .text(this.score);
 
-  this.display.scoreboard
-		.select('.level')
-		.text(this.level.id);
+      this.display.scoreboard
+      .select('.level')
+      .text(this.level.id);
 
-  this.display.scoreboard
-		.select('.moves')
-		.text(this.moves);
+      this.display.scoreboard
+      .select('.moves')
+      .text(this.moves);
 
-  this.display.scoreboard
-		.select('.scorepermoves')
-		.text( this.moves ? Math.floor(this.score / this.moves) : '');
+      this.display.scoreboard
+      .select('.scorepermoves')
+      .text( this.moves ? Math.floor(this.score / this.moves) : '...');
 }
 
 
-var mainBoard = new Board();
+var mainBoard = new Board({pxwidth: 600});
