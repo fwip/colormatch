@@ -1,17 +1,27 @@
-#info {
-  float: left;
-  width: 350px;
-  padding-left: 20px;
+.info {
+  /*float: right;*/
+  /*text-align: right;*/
 }
 
-#game {
+.disp {
+  /*width: 60px;*/
+  padding-left: 40px;
+  float: left;
+  text-align: right;
+}
+
+.game {
   float: left;
   width: 400px;
+  height: 400px;
 }
 
 #instructions {
   color: gray;
   font-style: italic;
+  padding-left: 30px;
+  margin-left: 30px;
+  bg-color: yellow;
 }
 
 #title {

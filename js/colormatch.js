@@ -22,8 +22,20 @@ function Board(params){
 
   // Setup board contents
 
+	this.display = {};
+
+	this.display.scoreboard = d3.select('#game')
+		.append('div')
+		.attr('id', 'scoreboard')
+		.attr('class', 'info')
+		.html('<div class="disp">Score<br><span class="score"></span></div>'
+				 +'<div class="disp">Level<br><span class="level"></span></div>'
+				 +'<div class="disp">Moves<br><span class="moves"></span></div>'
+				 +'<div class="disp">Score/Moves<br><span class="scorepermoves"><span></div>');
+
+
   // Create SVG gameboard
-  this.svg = d3.select('#game')
+  this.display.svg = d3.select('#game')
     .append('svg')
     .attr('width', "100%")
     .attr('height', "100%");
@@ -37,9 +49,9 @@ function Board(params){
     .domain([0, this.height - 1]);
 
   // Add score
-  d3.select('#game')
-    .append('div')
-    .attr('class', 'score')
+  //d3.select('#game')
+    //.append('div')
+    //.attr('class', 'score')
     
   // Bind d3 data
   
@@ -282,7 +294,7 @@ Board.prototype.redraw = function(){
 
 	var thisBoard = this;
 
-  var selection = this.svg
+  var selection = this.display.svg
     .selectAll('circle')
     .data(this.pieces, function(d){ return d.id });
 
@@ -322,13 +334,21 @@ Board.prototype.redraw = function(){
     .remove();
 
   // Set score display
-  d3.select('#score')
-    .html('Score: ' + this.score + '<br>'
-          + 'Moves: ' + this.moves + '<br>'
-          + 'Level: ' + this.level.id + '<br>'
-          + ((this.moves > 0)
-            ? ('Score/Moves: ' + Math.floor(this.score / this.moves))
-            : '') );
+  this.display.scoreboard
+		.select('.score')
+		.text(this.score);
+
+  this.display.scoreboard
+		.select('.level')
+		.text(this.level.id);
+
+  this.display.scoreboard
+		.select('.moves')
+		.text(this.moves);
+
+  this.display.scoreboard
+		.select('.scorepermoves')
+		.text( this.moves ? Math.floor(this.score / this.moves) : '');
 }
 
 
