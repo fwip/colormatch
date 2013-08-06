@@ -72,8 +72,8 @@ function Piece(pos, color) {
 };
 
 Piece.nextid = 0;
-Piece.colors = ['red', 'green', 'blue', 'orange', 'purple', 'gold',
-  'brown', 'grey', 'pink', 'lightgreen', 'teal', 'magenta', 'maroon', 'olive', 'lightblue', 'lightorange', 'black'];
+Piece.colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink',
+  'brown', 'grey', 'gold', 'magenta', 'teal',  'maroon', 'lightgreen', 'olive', 'lightblue', 'lightorange', 'black'];
 
 function Position(x, y) {
   this.x = x || 0;
