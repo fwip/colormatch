@@ -9,8 +9,8 @@ function Board(params){
   this.attachPoint = params.attachPoint || '#game';
 
 
-  this.width = params.width || 2;
-  this.height = params.height || 2;
+  this.width = params.width || 8;
+  this.height = params.height || 8;
 
 	this.pxwidth = params.pxwidth
     || d3.select(this.attachPoint).node().clientWidth;
