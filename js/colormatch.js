@@ -9,8 +9,8 @@ function Board(params){
   this.attachPoint = params.attachPoint || '#game';
 
 
-  this.width = params.width || 8;
-  this.height = params.height || 8;
+  this.width = params.width || 2;
+  this.height = params.height || 2;
 
 	this.pxwidth = params.pxwidth
     || d3.select(this.attachPoint).node().clientWidth;
@@ -285,8 +285,8 @@ Board.prototype.gameOver = function(){
     .attr('x', this.pxwidth / 2)
     .attr('y', this.pxheight / 2)
     .attr('text-anchor', 'middle')
-    .on('mouseover', function(d){ d3.select(this).attr('font-size', '130%')})
-    .on('mouseout', function(d){ d3.select(this).attr('font-size', '100%')})
+    .on('mouseover', function(d){ d3.select(this).attr('font-size', '130%').text('New game!')})
+    .on('mouseout', function(d){ d3.select(this).attr('font-size', '100%').text('New game?')})
     .text('New game?')
     .on('click', function() { thisBoard.newGame() });
 };
