@@ -1,3 +1,5 @@
+var noop = function(){};
+
 function Board(params){
 
   // Set up default parameters
@@ -238,7 +240,8 @@ Board.prototype.updateState = function(){
 
   } else {
     if (! this.possibleMoves().length){
-      this.gameOver();
+      var thisBoard = this;
+      window.setTimeout( function(){thisBoard.gameOver()}, 20);
     } else {
       this.interactable = true;
     }
@@ -270,20 +273,21 @@ Board.prototype.gameOver = function(){
 
   this.display.svg
     .selectAll('circle')
-    .data([])
-    .exit()
+    .data(this.pieces)
+    .on('mouseover', noop)
+    .on('mouseout', noop)
+    .on('click', noop)
+    .attr('r', thisBoard.piece_size)
     .transition()
-    .ease('linear')
-    .attr('opacity', 0)
-    .attr('r', this.fade_size)
-    .duration(this.delay * 5)
-    .remove();
+    .attr('opacity', '.2')
+    .duration(this.delay * 5) ;
 
   this.display.svg
     .append('text')
     .attr('x', this.pxwidth / 2)
     .attr('y', this.pxheight / 2)
     .attr('text-anchor', 'middle')
+    .attr('baseline-shift', '-33%')
     .on('mouseover', function(d){ d3.select(this).attr('font-size', '130%').text('New game!')})
     .on('mouseout', function(d){ d3.select(this).attr('font-size', '100%').text('New game?')})
     .text('New game?')
