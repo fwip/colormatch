@@ -20,8 +20,6 @@ function Board(params){
   this.piece_size = params.piecesize || Math.floor(this.selected_size * 0.8);
   this.fade_size = this.piece_size * 1.4;
 
-  this.level = Board.levels[0];
-  this.moves = 0;
 
   // Setup board contents
 
@@ -60,7 +58,7 @@ function Board(params){
 
   // Bind d3 data
   
-  this.updateState();
+  this.newGame();
 };
 
 
@@ -241,11 +239,57 @@ Board.prototype.updateState = function(){
 
   } else {
     if (! this.possibleMoves().length){
-      this.notify("GAME OVER :[", true);
+      this.gameOver();
+    } else {
+      this.interactable = true;
     }
-    this.interactable = true;
   }
 }
+
+Board.prototype.newGame = function(){
+
+  this.pieces = [];
+  this.score = 0;
+  this.moves = 0;
+  this.level = Board.levels[0];
+  this.interactable = true;
+  this.updateState();
+
+  this.display.svg
+    .selectAll('text')
+    .remove();
+
+  this.notify('');
+};
+
+Board.prototype.gameOver = function(){
+
+  var thisBoard = this;
+
+  this.notify("GAME OVER :[", true);
+  this.interactable = false;
+
+  this.display.svg
+    .selectAll('circle')
+    .data([])
+    .exit()
+    .transition()
+    .ease('linear')
+    .attr('opacity', 0)
+    .attr('r', this.fade_size)
+    .duration(this.delay * 5)
+    .remove();
+
+  this.display.svg
+    .append('text')
+    .attr('x', this.pxwidth / 2)
+    .attr('y', this.pxheight / 2)
+    .attr('text-anchor', 'middle')
+    .on('mouseover', function(d){ d3.select(this).attr('font-size', '130%')})
+    .on('mouseout', function(d){ d3.select(this).attr('font-size', '100%')})
+    .text('New game?')
+    .on('click', function() { thisBoard.newGame() });
+};
 
 Board.prototype.notify = function(message, stickAround){
 
