@@ -63,15 +63,14 @@ function Board(params){
 
 
 
-function Piece(pos, color) {
+function Piece(pos, type) {
   this.id = Piece.nextid++;
-  this.color = color || 'black';
+  this.type = type || 0;
   this.pos = pos || new Position;
 };
 
 Piece.nextid = 0;
-Piece.colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink',
-  'brown', 'grey', 'gold', 'magenta', 'teal',  'maroon', 'lightgreen', 'olive', 'lightblue', 'lightorange', 'black'];
+Piece.colorScale = d3.scale.category10().domain([0,1,2,3,4,5,6,7,8,9]);
 
 function Position(x, y) {
   this.x = x || 0;
@@ -153,13 +152,13 @@ Board.prototype.findMatches = function(twodee){
   var matches = [];
   for (var x = 0; x < this.width; x++){
     for (var y = 0; y < this.height; y++){
-      var color = twodee[x][y].color;
+      var type = twodee[x][y].type;
       // Check for horizontal match
       var horiz_match = [];
       var vert_match = [];
 
       var t = x;
-      while(t < this.width && twodee[t][y].color == color){
+      while(t < this.width && twodee[t][y].type == type){
         horiz_match.push(twodee[t][y].id);
         t++;
       }
@@ -168,7 +167,7 @@ Board.prototype.findMatches = function(twodee){
       }
 
       t = y;
-      while(t < this.height && twodee[x][t].color == color){
+      while(t < this.height && twodee[x][t].type == type){
         vert_match.push(twodee[x][t].id);
         t++;
       }
@@ -192,8 +191,8 @@ Board.prototype.checkColorCount = function(){
 }
 
 Board.prototype.newRandomPiece = function(pos){
-	var color = color || Piece.colors[Math.floor(Math.random() * this.level.colors)];
-	var piece = new Piece(pos, color);
+	var type = Math.floor(Math.random() * this.level.colors);
+	var piece = new Piece(pos, type);
 	return piece;
 };
 
@@ -371,7 +370,7 @@ Board.prototype.redraw = function(){
   .append('circle')
   .attr('r', this.piece_size)
   .attr('cy', this.yScale(-1))
-  .attr('fill', function(d,i){return d.color})
+  .attr('fill', function(d,i){return Piece.colorScale(d.type)})
   .attr('iid', function(d){return d.id})
   .attr('stroke', 'black')
   .on('click', function(d){ thisBoard.select(d) } )
