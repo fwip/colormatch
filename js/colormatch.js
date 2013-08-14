@@ -7,6 +7,7 @@ function Board(params){
   this.pieces = [];
   this.score = 0;
 	this.delay = 200;
+  this.hintDelay = 4000;
 
   this.attachPoint = params.attachPoint || '#game';
 
@@ -127,6 +128,38 @@ Board.prototype.testSwap = function(twodee, x1, y1, x2, y2){
 	return possible;
 };
 
+Board.prototype.hint = function(pieces){
+  this.display.svg
+    .selectAll('circle')
+    .data(pieces, function(d){ return d.id })
+    .transition()
+    .duration(this.delay )
+    .attr('r', this.selected_size)
+    .transition()
+    .duration(this.delay )
+    .attr('r', this.piece_size);
+};
+
+Board.prototype.scheduleHint = function(match){
+  var thisBoard = this;
+  var updateId = this.updateId;
+  window.setTimeout( function(){
+    if (thisBoard.updateId == updateId) {thisBoard.hint(match); thisBoard.scheduleHint(match)}
+  }, this.hintDelay);
+}
+
+// If in autoplay, do the move. Otherwise, set up a hint.
+Board.prototype.pickMove = function(matches){
+  matches = matches || this.possibleMoves();
+  match = matches[Math.floor(Math.random() * matches.length)];
+  if (this.autoplay){
+    this.swap(match[0], match[1]);
+    this.moves++;
+    this.redraw();
+  } else {
+    this.scheduleHint(match);
+  }
+};
 
 Board.prototype.possibleMoves = function(){
   var moves = [];
@@ -241,9 +274,10 @@ Board.prototype.updateState = function(){
   } else {
     if (! this.possibleMoves().length){
       var thisBoard = this;
-      window.setTimeout( function(){thisBoard.gameOver()}, 20);
+      this.gameOver();
     } else {
       this.interactable = true;
+      this.pickMove();
     }
   }
 }
@@ -273,7 +307,7 @@ Board.prototype.gameOver = function(){
 
   this.display.svg
     .selectAll('circle')
-    .data(this.pieces)
+    .data(this.pieces, function(d){ return d.id })
     .on('mouseover', noop)
     .on('mouseout', noop)
     .on('click', noop)
