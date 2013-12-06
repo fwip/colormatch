@@ -60,7 +60,6 @@ function Board(params){
     .domain([0, this.height - 1]);
 
   // Bind d3 data
-  
   this.newGame();
 };
 
@@ -137,6 +136,12 @@ Board.prototype.hint = function(pieces){
     .attr('r', this.selected_size)
     .transition()
     .duration(this.delay )
+    .attr('r', this.piece_size)
+    .transition()
+    .duration(this.delay )
+    .attr('r', this.selected_size)
+    .transition()
+    .duration(this.delay )
     .attr('r', this.piece_size);
 };
 
@@ -168,8 +173,8 @@ Board.prototype.possibleMoves = function(){
   for (var x = 0; x < this.width ; x++){
     for (var y = 0; y < this.height ; y++){
       // Check down
-      var downOkay = this.testSwap(twodee, x, y, x, y+1);   
-      var rightOkay = this.testSwap(twodee, x, y, x+1, y);   
+      var downOkay = this.testSwap(twodee, x, y, x, y+1);
+      var rightOkay = this.testSwap(twodee, x, y, x+1, y);
       if (downOkay){
         moves.push([twodee[x][y], twodee[x][y+1]]);
       }
@@ -215,13 +220,13 @@ Board.prototype.findMatches = function(twodee){
 }
 
 Board.prototype.checkColorCount = function(){
-  
 	var thisBoard = this;
   var new_colors = Board.levels.filter(
     function(t) {return t.score <= thisBoard.score}).length;
 
-  if (this.level.id < new_colors){
+  if (this.level.id < new_colors - 1){
     this.level = Board.levels[new_colors-1];
+    this.notify("Level " + new_colors - 1 + '!');
   }
 }
 
@@ -265,7 +270,7 @@ Board.prototype.updateState = function(){
 
       this.checkColorCount();
     }
-  } 
+  }
   // If anything changed, redraw again
   if (matched || dropped){
     this.redraw();
@@ -410,7 +415,7 @@ Board.prototype.redraw = function(){
   .attr('cy', this.yScale(-1))
   .attr('fill', function(d,i){return Piece.colorScale(d.type)})
   .attr('iid', function(d){return d.id})
-  .attr('stroke', 'black')
+  .attr('stroke', function(d){ return d3.rgb(Piece.colorScale(d.type)).darker()})
   .on('click', function(d){ thisBoard.select(d) } )
   .on('mouseover', function(d){
     d3.select(this)
@@ -423,7 +428,7 @@ Board.prototype.redraw = function(){
 
 
   selection
-    .attr('stroke-width', function (d){return d.selected ? 1 : 0 })
+    .attr('stroke-width', function (d){return d.selected ? 2.5 : 1.5 })
     .transition()
     .duration(this.delay)
     .ease('linear')

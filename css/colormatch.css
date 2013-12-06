@@ -7,7 +7,7 @@
 
 .game {
   width: 600px;
-  float: auto;
+  float: left;
   margin: 0, 80;
   padding: 0px;
   height: 700px;
@@ -18,7 +18,7 @@
   font-style: italic;
   margin-left: 30px;
   padding-left: 30px;
-  float: clear;
+  float: left;
 }
 
 #title {
