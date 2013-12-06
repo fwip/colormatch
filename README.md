@@ -1,7 +1,7 @@
-colormatch
+Colormatch
 ==========
 
-A Bejeweled clone made with D3.
+A simple match-3 game made with D3.
 
 Demo
 ====
