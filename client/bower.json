@@ -1,0 +1,30 @@
+{
+  "name": "colormatch",
+  "version": "0.0.1",
+  "homepage": "https://github.com/fwip/colormatch",
+  "authors": [
+    "Jemma Nelson <jemma.s.nelson@gmail.com>"
+  ],
+  "description": "Client code for colormatch",
+  "main": "index.html",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "game",
+    "d3"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "~3.4.13",
+    "peerjs": "~0.3.14"
+  }
+}
