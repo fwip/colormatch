@@ -466,6 +466,19 @@ Board.prototype.redraw = function(){
     .text( this.moves ? Math.floor(this.score / this.moves) : '...');
 }
 
+function randomElement(array){
+  return array[Math.floor( Math.random() * array.length )];
+};
+
+function nameGenerate(){
+  var adjectives = "Agent RipRoarin IncredibleEdible ItsyBitsy Shrieking Secret Super Space Wooly HungryHungry Sparkling".split(/\s+/);
+  var nouns = "Agent Chicken Mitten Ostrich Toe Fungus Topiary Octogenarian".split(/\s+/);
+
+  var name = randomElement(adjectives) + randomElement(nouns);
+  return name;
+
+}
+
 function registerPeer(name){
   // TODO: Don't hardcode this path
   // Supposedly using "/" as host should work.
@@ -474,7 +487,25 @@ function registerPeer(name){
   return peer;
 }
 
+function getUsers(callback){
+  var req = new XMLHttpRequest();
+  //req.onload = reqListener;
+  req.open("get", "/users", true);
+  req.onreadystatechange = function(){
+    if (req.readyState == 4 && req.status == 200) {
+      callback(JSON.parse(req.response));
+      //console.log(req.response);
+    }
+  }
+  req.send();
+}
+
+setTimeout(function(){getUsers( function(users){
+  alert( users.join(", ") );
+})}, 1000);
+var myName = nameGenerate();
+registerPeer(myName);
+
 
 var mainBoard = new Board({pxwidth: 600});
 
-registerPeer("fwip");
