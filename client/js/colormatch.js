@@ -466,5 +466,15 @@ Board.prototype.redraw = function(){
     .text( this.moves ? Math.floor(this.score / this.moves) : '...');
 }
 
+function registerPeer(name){
+  // TODO: Don't hardcode this path
+  // Supposedly using "/" as host should work.
+
+  var peer = new Peer(name, {host: "robust-motor-81-170772.usw1-2.nitrousbox.com", port: 8080, path: "/api"})
+  return peer;
+}
+
 
 var mainBoard = new Board({pxwidth: 600});
+
+registerPeer("fwip");
